@@ -1,6 +1,6 @@
 using Congestion.Calculator.Enums;
 using Congestion.Calculator.Models;
-using Congestion.Calculator.Services;
+using Congestion.Calculator.Services.DayRuleCheckerService;
 using Congestion.Calculator.Services.TaxCalculatorService;
 using Congestion.Calculator.Types;
 
@@ -59,15 +59,6 @@ namespace CongestionTaxCalculator.UnitTests
             ];
         }
 
-        /// <summary>
-        /// Full integration-style test:
-        /// All timestamps from the assignment run through the calculator for one vehicle.
-        /// Expected total computed according to:
-        /// - time bands and amounts from assignment
-        /// - single charge rule (60 minutes window)
-        /// - daily cap 60 SEK
-        /// - weekends, public holidays, day-before-holiday and July are toll-free
-        /// </summary>
         [Test]
         public void CalculateTax_AllAssignmentTimestamps_ReturnsExpectedTotal()
         {
@@ -76,7 +67,7 @@ namespace CongestionTaxCalculator.UnitTests
             DayRuleChecker dayChecker = new(holidays);
 
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            ITaxCalculator calculator = new TaxCalculator(taxRules, dayChecker);
+            TaxCalculator calculator = new(taxRules, dayChecker);
 
             Vehicle vehicle = new() { PlateNumber = "ABC123", Type = VehicleType.Car };
 
@@ -135,12 +126,12 @@ namespace CongestionTaxCalculator.UnitTests
             List<Holiday> holidays = Get2013Holidays();
             DayRuleChecker dayChecker = new(holidays);
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            ITaxCalculator calculator = new TaxCalculator(taxRules, dayChecker);
+            TaxCalculator calculator = new(taxRules, dayChecker);
 
             Vehicle vehicle = new() { PlateNumber = "CAR2", Type = VehicleType.Car };
 
-            List<Passage> passages = new()
-            {
+            List<Passage> passages =
+            [
                 new Passage { Timestamp = DateTime.Parse("2013-02-08 06:20:27"), VehiclePlate = vehicle.PlateNumber },
                 new Passage { Timestamp = DateTime.Parse("2013-02-08 06:27:00"), VehiclePlate = vehicle.PlateNumber },
                 new Passage { Timestamp = DateTime.Parse("2013-02-08 14:35:00"), VehiclePlate = vehicle.PlateNumber },
@@ -151,7 +142,7 @@ namespace CongestionTaxCalculator.UnitTests
                 new Passage { Timestamp = DateTime.Parse("2013-02-08 17:49:00"), VehiclePlate = vehicle.PlateNumber },
                 new Passage { Timestamp = DateTime.Parse("2013-02-08 18:29:00"), VehiclePlate = vehicle.PlateNumber },
                 new Passage { Timestamp = DateTime.Parse("2013-02-08 18:35:00"), VehiclePlate = vehicle.PlateNumber }
-            };
+            ];
 
             const int expected = 60; // capped
 
@@ -169,14 +160,12 @@ namespace CongestionTaxCalculator.UnitTests
             List<Holiday> holidays = Get2013Holidays();
             DayRuleChecker dayChecker = new(holidays);
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            ITaxCalculator calculator = new TaxCalculator(taxRules, dayChecker);
+            TaxCalculator calculator = new(taxRules, dayChecker);
 
             Vehicle vehicle = new() { PlateNumber = "CAR3", Type = VehicleType.Car };
 
-            List<Passage> passages = new()
-            {
-                new Passage { Timestamp = DateTime.Parse("2013-03-28 14:07:27"), VehiclePlate = vehicle.PlateNumber }
-            };
+            List<Passage> passages =
+                [new Passage { Timestamp = DateTime.Parse("2013-03-28 14:07:27"), VehiclePlate = vehicle.PlateNumber }];
 
             // Act
             Money tax = calculator.CalculateTax(vehicle, passages);
@@ -192,7 +181,7 @@ namespace CongestionTaxCalculator.UnitTests
             List<Holiday> holidays = Get2013Holidays();
             DayRuleChecker dayChecker = new(holidays);
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            ITaxCalculator calculator = new TaxCalculator(taxRules, dayChecker);
+            TaxCalculator calculator = new(taxRules, dayChecker);
 
             Vehicle vehicle = new() { PlateNumber = "CAR4", Type = VehicleType.Car };
 
@@ -216,14 +205,12 @@ namespace CongestionTaxCalculator.UnitTests
             List<Holiday> holidays = Get2013Holidays();
             DayRuleChecker dayChecker = new(holidays);
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            ITaxCalculator calculator = new TaxCalculator(taxRules, dayChecker);
+            TaxCalculator calculator = new TaxCalculator(taxRules, dayChecker);
 
             Vehicle vehicle = new() { PlateNumber = "CAR5", Type = VehicleType.Car };
 
-            List<Passage> passages = new()
-            {
-                new Passage { Timestamp = DateTime.Parse("2013-03-26 14:25:00"), VehiclePlate = vehicle.PlateNumber }
-            };
+            List<Passage> passages =
+                [new Passage { Timestamp = DateTime.Parse("2013-03-26 14:25:00"), VehiclePlate = vehicle.PlateNumber }];
 
             // Act
             Money tax = calculator.CalculateTax(vehicle, passages);
@@ -239,7 +226,7 @@ namespace CongestionTaxCalculator.UnitTests
             List<Holiday> holidays = Get2013Holidays();
             DayRuleChecker dayChecker = new(holidays);
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            ITaxCalculator calculator = new TaxCalculator(taxRules, dayChecker);
+            TaxCalculator calculator = new(taxRules, dayChecker);
 
             // Motorcycle is toll-free per assignment
             Vehicle vehicle = new() { PlateNumber = "MOTO1", Type = VehicleType.Motorcycle };
@@ -262,7 +249,7 @@ namespace CongestionTaxCalculator.UnitTests
             List<Holiday> holidays = Get2013Holidays();
             DayRuleChecker dayChecker = new(holidays);
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            ITaxCalculator calculator = new TaxCalculator(taxRules, dayChecker);
+            TaxCalculator calculator = new(taxRules, dayChecker);
 
             Vehicle vehicle = new() { PlateNumber = "CAR6", Type = VehicleType.Car };
 

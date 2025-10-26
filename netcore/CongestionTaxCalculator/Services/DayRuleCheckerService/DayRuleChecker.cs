@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Congestion.Calculator.Models;
 
-namespace Congestion.Calculator.Services;
+namespace Congestion.Calculator.Services.DayRuleCheckerService;
 
-public class DayRuleChecker(IEnumerable<Holiday> holidays)
+public class DayRuleChecker(IEnumerable<Holiday> holidays) : IDayRuleChecker
 {
     public bool IsTaxableDay(DateTime date)
     {
