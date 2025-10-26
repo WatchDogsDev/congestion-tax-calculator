@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\CongestionTaxCalculator\CongestionTaxCalculator.csproj" />
+      <ProjectReference Include="..\..\src\CongestionTaxCalculator\CongestionTaxCalculator.csproj" />
     </ItemGroup>
 
 </Project>

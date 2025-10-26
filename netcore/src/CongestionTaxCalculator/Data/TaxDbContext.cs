@@ -10,6 +10,7 @@ public class TaxDbContext(DbContextOptions<TaxDbContext> options) : DbContext(op
     public DbSet<Passage> Passages => Set<Passage>();
     public DbSet<TaxRule> TaxRules => Set<TaxRule>();
     public DbSet<Holiday> Holidays => Set<Holiday>();
+    public DbSet<City> Cities => Set<City>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -17,5 +18,7 @@ public class TaxDbContext(DbContextOptions<TaxDbContext> options) : DbContext(op
         modelBuilder.Entity<Passage>().HasKey(p => p.Id);
         modelBuilder.Entity<TaxRule>().HasKey(t => new { t.Start, t.End });
         modelBuilder.Entity<Holiday>().HasKey(h => h.Date);
+        modelBuilder.Entity<City>().HasKey(c => c.Name);
+        ;
     }
 }

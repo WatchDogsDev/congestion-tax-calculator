@@ -9,14 +9,15 @@ using Congestion.Calculator.Types;
 namespace Congestion.Calculator.Services.TaxCalculatorService;
 
 public class TaxCalculator(
+    City city,
     IEnumerable<TaxRule> taxRules,
     IDayRuleChecker dayChecker)
     : ITaxCalculator
 {
     public Money CalculateTax(IVehicle vehicle, IEnumerable<Passage> passages)
     {
-        const Currency defaultCurrency = Currency.SEK;
-        const int maxFeePerDay = 60;
+        Currency defaultCurrency = city.MoneyCurrency;
+        int maxFeePerDay = city.DailyFeeCap;
 
         if (vehicle.IsTaxExempt())
         {
@@ -30,7 +31,9 @@ public class TaxCalculator(
         int totalTax = 0;
         foreach (IGrouping<DateTime, Passage> passagesDayGroup in dailyGroups)
         {
-            IEnumerable<Passage> processedPassages = ApplySingleChargeRule(passagesDayGroup, taxRules);
+            IEnumerable<Passage> processedPassages = city.HasSingleChargeRule
+                ? ApplySingleChargeRule(passagesDayGroup, taxRules, city.SingleChargeRuleWindow!.Value)
+                : passagesDayGroup;
             int dayTax = processedPassages.Sum(p =>
             {
                 TaxRule rule = taxRules.FirstOrDefault(r =>
@@ -45,7 +48,7 @@ public class TaxCalculator(
     }
 
     private static IEnumerable<Passage> ApplySingleChargeRule(IEnumerable<Passage> passages,
-        IEnumerable<TaxRule> taxRules)
+        IEnumerable<TaxRule> taxRules, TimeSpan timeWindow)
     {
         List<Passage> ordered = passages.OrderBy(p => p.Timestamp).ToList();
         List<Passage> result = [];
@@ -54,7 +57,7 @@ public class TaxCalculator(
         while (i < ordered.Count)
         {
             DateTime windowStart = ordered[i].Timestamp;
-            DateTime windowEnd = windowStart.AddMinutes(60);
+            DateTime windowEnd = windowStart.Add(timeWindow);
 
             List<Passage> windowPassages =
                 ordered.Where(p => p.Timestamp >= windowStart && p.Timestamp <= windowEnd).ToList();

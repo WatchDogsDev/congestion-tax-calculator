@@ -9,6 +9,14 @@ namespace CongestionTaxCalculator.UnitTests
     [TestFixture]
     public class TaxCalculatorTests
     {
+        private static City GetGothenburgCity() => new()
+        {
+            Name = "Gothenburg",
+            DailyFeeCap = 60,
+            MoneyCurrency = Currency.SEK,
+            SingleChargeRuleWindow = TimeSpan.FromMinutes(60)
+        };
+
         private static List<TaxRule> GetGothenburgTaxRules()
         {
             return
@@ -63,11 +71,12 @@ namespace CongestionTaxCalculator.UnitTests
         public void CalculateTax_AllAssignmentTimestamps_ReturnsExpectedTotal()
         {
             // Arrange
+            City city = GetGothenburgCity();
             List<Holiday> holidays = Get2013Holidays();
             DayRuleChecker dayChecker = new(holidays);
 
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            TaxCalculator calculator = new(taxRules, dayChecker);
+            TaxCalculator calculator = new(city, taxRules, dayChecker);
 
             Vehicle vehicle = new() { PlateNumber = "ABC123", Type = VehicleType.Car };
 
@@ -97,10 +106,11 @@ namespace CongestionTaxCalculator.UnitTests
         public void CalculateTax_February7_Returns21()
         {
             // Arrange
+            City city = GetGothenburgCity();
             List<Holiday> holidays = Get2013Holidays();
             DayRuleChecker dayChecker = new(holidays);
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            ITaxCalculator calculator = new TaxCalculator(taxRules, dayChecker);
+            ITaxCalculator calculator = new TaxCalculator(city, taxRules, dayChecker);
 
             Vehicle vehicle = new() { PlateNumber = "CAR1", Type = VehicleType.Car };
 
@@ -123,10 +133,11 @@ namespace CongestionTaxCalculator.UnitTests
         public void CalculateTax_February8_CappedAt60()
         {
             // Arrange
+            City city = GetGothenburgCity();
             List<Holiday> holidays = Get2013Holidays();
             DayRuleChecker dayChecker = new(holidays);
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            TaxCalculator calculator = new(taxRules, dayChecker);
+            TaxCalculator calculator = new(city, taxRules, dayChecker);
 
             Vehicle vehicle = new() { PlateNumber = "CAR2", Type = VehicleType.Car };
 
@@ -144,23 +155,22 @@ namespace CongestionTaxCalculator.UnitTests
                 new Passage { Timestamp = DateTime.Parse("2013-02-08 18:35:00"), VehiclePlate = vehicle.PlateNumber }
             ];
 
-            const int expected = 60; // capped
-
             // Act
             Money tax = calculator.CalculateTax(vehicle, passages);
 
             // Assert
-            Assert.That(tax.Amount, Is.EqualTo(expected));
+            Assert.That(tax.Amount, Is.EqualTo(city.DailyFeeCap));
         }
 
         [Test]
         public void CalculateTax_March28_IsDayBeforeHoliday_Free()
         {
             // Arrange
+            City city = GetGothenburgCity();
             List<Holiday> holidays = Get2013Holidays();
             DayRuleChecker dayChecker = new(holidays);
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            TaxCalculator calculator = new(taxRules, dayChecker);
+            TaxCalculator calculator = new(city, taxRules, dayChecker);
 
             Vehicle vehicle = new() { PlateNumber = "CAR3", Type = VehicleType.Car };
 
@@ -178,10 +188,11 @@ namespace CongestionTaxCalculator.UnitTests
         public void CalculateTax_Jan14AndJan15_NightPasses_Zero()
         {
             // Arrange
+            City city = GetGothenburgCity();
             List<Holiday> holidays = Get2013Holidays();
             DayRuleChecker dayChecker = new(holidays);
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            TaxCalculator calculator = new(taxRules, dayChecker);
+            TaxCalculator calculator = new(city, taxRules, dayChecker);
 
             Vehicle vehicle = new() { PlateNumber = "CAR4", Type = VehicleType.Car };
 
@@ -202,10 +213,11 @@ namespace CongestionTaxCalculator.UnitTests
         public void CalculateTax_March26_14_25_Returns8()
         {
             // Arrange
+            City city = GetGothenburgCity();
             List<Holiday> holidays = Get2013Holidays();
             DayRuleChecker dayChecker = new(holidays);
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            TaxCalculator calculator = new TaxCalculator(taxRules, dayChecker);
+            TaxCalculator calculator = new(city, taxRules, dayChecker);
 
             Vehicle vehicle = new() { PlateNumber = "CAR5", Type = VehicleType.Car };
 
@@ -223,10 +235,11 @@ namespace CongestionTaxCalculator.UnitTests
         public void CalculateTax_TollFreeVehicle_ReturnsZero()
         {
             // Arrange
+            City city = GetGothenburgCity();
             List<Holiday> holidays = Get2013Holidays();
-            DayRuleChecker dayChecker = new(holidays);
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            TaxCalculator calculator = new(taxRules, dayChecker);
+            DayRuleChecker dayChecker = new(holidays);
+            TaxCalculator calculator = new(city, taxRules, dayChecker);
 
             // Motorcycle is toll-free per assignment
             Vehicle vehicle = new() { PlateNumber = "MOTO1", Type = VehicleType.Motorcycle };
@@ -246,10 +259,11 @@ namespace CongestionTaxCalculator.UnitTests
         public void CalculateTax_July_IsFree()
         {
             // Arrange
+            City city = GetGothenburgCity();
             List<Holiday> holidays = Get2013Holidays();
-            DayRuleChecker dayChecker = new(holidays);
             List<TaxRule> taxRules = GetGothenburgTaxRules();
-            TaxCalculator calculator = new(taxRules, dayChecker);
+            DayRuleChecker dayChecker = new(holidays);
+            TaxCalculator calculator = new(city, taxRules, dayChecker);
 
             Vehicle vehicle = new() { PlateNumber = "CAR6", Type = VehicleType.Car };
 
